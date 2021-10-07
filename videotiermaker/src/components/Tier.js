@@ -1,48 +1,59 @@
-import React, { Component, useState  } from 'react';
+import React, {  useCallback, useEffect, useState  } from 'react';
 import { TextField, Box,Avatar, List, ListItem, ListItemAvatar, IconButton, ListItemText, ListItemSecondaryAction, Button } from '@material-ui/core';
 import { Delete, Folder, AddToQueue }  from '@material-ui/icons';
 
 
-class Tier extends Component {
-    constructor(props) {
-        super(props);
 
-        this.state = {
-            list:[],
-            currentURL:""
-        };
-        this.addToList = this.addToList.bind(this);
-        this.updateURL = this.updateURL.bind(this);
-        this.displayItems = this.displayItems.bind(this);
-        this.removeItem = this.removeItem.bind(this);
-      }
-
-
-    updateURL(url) {
-        this.setState({currentURL:url});
-    }
-    addToList() {
-        this.setState(prevState => ({
-            list: [...prevState.list, {'URL':this.state.currentURL, 'Title':this.state.currentURL}]
-          }))
-        this.setState({currentURL:""});
-    }
-
-    removeItem(idx){
-        console.log(idx)
-        this.setState(prevState => ({list: prevState.list.filter((_,i) => i !== idx)}));
-    }
-
-    displayItems(){
-       return  this.state.list.map(el => {<div>yo</div>});
-    }
+function Tier(props) {
     
-    render () { 
+        const [list, setList] = useState([]);
+        const [currentURL, setCurrentURL] = useState('');
+        const [URL, setURL] = useState('');
+        const [results, setResults] = useState([]);
+
+
+        const updateURL = useCallback((url) => {
+            setCurrentURL(url);
+        },[]);
+
+        const addToList = useCallback((newData) =>{
+            console.table(newData);
+            /*setList(prevList => (
+                [prevList.concat(newData)]
+              ));*/
+            setList(list.concat(newData));
+            console.log(list);
+            setCurrentURL("");
+        },[]);
+        
+        const removeItem = useCallback((idx) =>{
+            console.log(idx)
+            setList(prevList => (prevList.filter((_,i) => i !== idx)));
+        },[]);
+        
+        /*const displayItems = useCallback(() =>{
+           return list.map(el => {<div>yo</div>});
+        },[]);*/
+ 
+        useEffect(() => {
+            // POST request using fetch inside useEffect React hook
+            const requestOptions = {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 'URLS': URL })
+            };
+            if(currentURL!=="")
+                fetch('/api/handleURLS', requestOptions)
+                    .then(response => response.json())
+                    .then(data => addToList(data.videos))
+        // empty dependency array means this effect will only run once (like componentDidMount in classes)
+        }, [URL]);
+    
         const Logo = () => (
             <AddToQueue/>
         )
 
-        const listItems = this.state.list.map((el,idx) => 
+        const listItems = list.map((el,idx) => 
             <ListItem >
             <ListItemAvatar>
                 <Avatar>
@@ -50,12 +61,12 @@ class Tier extends Component {
                 </Avatar>
             </ListItemAvatar>
             <ListItemText
-                primary={el.URL}
-                secondary={el.URL}
+                primary={el.title}
+                secondary={el.id}
                 />
             <ListItemSecondaryAction>
-                <IconButton onClick={()=>this.removeItem(idx)} edge="end"  aria-label="delete">
-                    <Delete  style={{ color:this.props.theme.palette.primary.light }}/>
+                <IconButton onClick={()=>removeItem(idx)} edge="end"  aria-label="delete">
+                    <Delete  style={{ color:props.theme.palette.primary.light }}/>
                 </IconButton>
             </ListItemSecondaryAction>
         </ListItem>
@@ -69,17 +80,17 @@ class Tier extends Component {
                         defaultValue=""
                         helperText="Youtube videos and Twitch.tv clips are supported"
                         variant="outlined"
-                        onChange={e=>this.updateURL(e.target.value)}
+                        onChange={(e)=>updateURL(e.target.value)}
                         borderColor= 'green'
                     />
                     <Button startIcon={<Logo/>} 
                         variant="outlined" size="large" 
                         style={{border: '2px double deeppurple', 
-                        background:this.props.theme.palette.primary.dark, 
-                        color:this.props.theme.palette.primary.contrastText,
+                        background:props.theme.palette.primary.dark, 
+                        color:props.theme.palette.primary.contrastText,
                         iconSize:'large'}} 
                         //onClick={this.addToList} 
-                        onClick={()=>this.props.setURL(this.state.currentURL)}
+                        onClick={()=>setURL(currentURL)}
                     >
                         Add URLS
                     </Button>  
@@ -89,6 +100,5 @@ class Tier extends Component {
                 </List>
             </Box>
         );
-    }
 }
 export default Tier;

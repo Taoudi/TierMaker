@@ -16,20 +16,7 @@ function App(){
   const [URL, setURL] = useState('');
 
 
-  useEffect(() => {
-    // POST request using fetch inside useEffect React hook
-    const requestOptions = {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 'URLS': URL })
-    };
-    if (page === 'tier'){
-      fetch('/api/handleURLS', requestOptions)
-          .then(response => response.json())
-          .then(data => setTierList(data.URLS));
-    }
-// empty dependency array means this effect will only run once (like componentDidMount in classes)
-}, [URL]);
+
 
 
 
